@@ -199,16 +199,19 @@ def swahb32(x):
 
 def gc(s):
     """Pass string to google calculator and return result string.  This
-    is most useful for unit conversions; i.e., '123 inches in cm'."""
+    is most useful for unit conversions; i.e., '123 inches in cm'.
+    Note: This is only intended for interactive use!  Please do not
+    use this function in any regularly-running scripts, as automated
+    usage may go against Google's intended usage policies."""
     q = urllib.urlencode({'q': s})
     conn = httplib.HTTPConnection("www.google.com")
     conn.request("GET", "/search?%s" % q)
     resp = conn.getresponse()
     data = resp.read()
-
-    #r = re.compile(r"<h2 class=r style=.font-size:138%.><b>(.+)</b></h2>")
-    # NAC: Updated from google changes in November 2011
-    r = re.compile(r"<h2 class=.?r.? .*style=.font-size:138%.>(<b>)?(.+)(</b>)?</h2>", re.DOTALL)
+    # Scrape google's calculator results
+    # Working as of November 2012
+    # May require changes as google updates their page
+    r = re.compile(r"<h2 class=.?r.? .*style=.font-size:138%.*>(<b>)?(.+)(</b>)?</h2>", re.DOTALL)
     m = r.search(data)
     if m:
         return m.group(2).replace("\xa0", ""). \
