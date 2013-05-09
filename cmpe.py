@@ -26,7 +26,42 @@ import urllib
 import httplib
 import re
 
-def group_str(str,length):
+# JEDEC bit and byte prefixes (base 2)
+K = 0x400L
+M = 0x100000L
+G = 0x40000000L
+T = 0x10000000000L
+P = 0x4000000000000L
+E = 0x1000000000000000L
+Z = 0x400000000000000000L
+Y = 0x100000000000000000000L
+
+# Metric aliases (otherwise same as JEDEC)
+k = K
+
+# IEC prefixes
+Ki = K  # kibi
+Mi = M  # mebi
+Gi = G  # gibi
+Ti = T  # tebi
+Pi = P  # pebi
+Ei = E  # exbi
+Zi = Z  # zebi
+Yi = Y  # yobi
+
+# Used internally for bit/byte size conversions
+_sizeunit_re = re.compile(r"([kKmMgGtTpPeEzZyY]?)i?([bB].*)")
+_size_re = re.compile(r"([0-9\.]*)\s*([kKmMgGtTpPeEzZyY]?)i?([bB].*)")
+_mult_map = {'k': k, 'K': K,
+             'm': M, 'M': M,
+             'g': G, 'G': G,
+             't': T, 'T': T,
+             'p': P, 'P': P,
+             'e': E, 'E': E,
+             'z': Z, 'Z': Z,
+             'y': Y, 'Y': Y}
+
+def _group_str(str,length):
     """Break up a string into groups of specified length, separated by
     spaces.  Right justified."""
     new = ""
@@ -38,8 +73,7 @@ def group_str(str,length):
             new += " "
     return new
 
-
-def rawhex(hexstr):
+def _rawhex(hexstr):
     """Strip any extra chars off a hex string.  Specifically, the leading
     '0x' and trailing 'L' if they exist."""
     s = hexstr
@@ -54,7 +88,7 @@ def int2bin(val,num_bits=0):
     bits = []
     s = ""
     if num_bits == 0:
-        num_bits = len(rawhex(hex(val))) * 4
+        num_bits = len(_rawhex(hex(val))) * 4
     for x in range(0,num_bits):
         if (val >> x) & 0x1:
             bits.insert(0, 1)
@@ -78,7 +112,7 @@ def bitrev(val,bits):
 
 def hex2bin(hexstr):
     """Convert a hex string byte to binary."""
-    hexstr = rawhex(hexstr)
+    hexstr = _rawhex(hexstr)
     dec = int(hexstr,16)
     return int2bin(dec)
 
@@ -128,10 +162,88 @@ def inspect(val,bitrev=0,num_bits=0):
             bitnum = x
         s += "%2d   " % bitnum 
     s += "\n"
-    s += "Binary (grouped)\t:\t %s\n" % group_str(int2bin(val,num_bits),4)
+    s += "Binary (grouped)\t:\t %s\n" % _group_str(int2bin(val,num_bits),4)
     s += "One bits\t\t:\t%s\n" % ones(val,bits,bitrev)
     s += "Zero bits\t\t:\t%s\n" % zeros(val,bits,bitrev)
     print s,
+
+def inspect_bytes(num_bytes,metric=False):
+    """Given a number of bytes, print a string showing it in various forms."""
+    s = ""
+    s += "Bytes (B)\t\t:\t%d\n" % (num_bytes)
+    s += "Kilobytes (KB)\t\t:\t%.3f\n" % round(num_bytes*1.0 / K, 3)
+    s += "Megabytes (MB)\t\t:\t%.3f\n" % round(num_bytes*1.0 / M, 3)
+    s += "Gigabytes (GB)\t\t:\t%.3f\n" % round(num_bytes*1.0 / G, 3)
+    s += "Terabytes (TB)\t\t:\t%.3f\n" % round(num_bytes*1.0 / T, 3)
+    s += "\n"
+    #num_bits = num_bytes << 3
+    num_bits = num_bytes * 8.0
+    s += "Bits (b)\t\t:\t%d\n" % (num_bits)
+    s += "Kilobits (Kb)\t\t:\t%.3f\n" % round(num_bits*1.0 / K, 3)
+    s += "Megabits (Mb)\t\t:\t%.3f\n" % round(num_bits*1.0 / M, 3)
+    s += "Gigabits (Gb)\t\t:\t%.3f\n" % round(num_bits*1.0 / G, 3)
+    s += "Terabits (Tb)\t\t:\t%.3f\n" % round(num_bits*1.0 / T, 3)
+
+    print s,
+
+def _str_is_bytes(s):
+    """Return True if string indicates bytes, or False if string
+    indicates bits.  Return None if unknown/ambiguous."""
+    if s.lower().startswith("byte"):
+        return True
+    elif s.lower().startswith("bit"):
+        return False
+    elif s[0] == 'B':
+        return True
+    elif s[0] == 'b':
+        return False
+    else:
+        return None
+
+def size(val,unit=None,metric=False):
+    """Print out a size (bits or bytes) in several different representations."""
+    num_bytes = 0
+    num = 0
+    is_bytes = True
+    mult_str = ""
+    if type(val) is str:
+        m = _size_re.search(val)
+        if not m:
+            raise Exception, 'size(): Unrecognized value specified'
+        num = float(m.group(1))
+        mult_str = m.group(2)
+        is_bytes = _str_is_bytes(m.group(3))
+    else:
+        if unit is None:
+            raise Exception, 'size(): unit must be specified for numeric inputs'
+        num = val
+        m = _sizeunit_re.search(unit)
+        if not m:
+            raise Exception, 'size(): Unrecognized unit specified'
+        mult_str = m.group(1)
+        is_bytes = _str_is_bytes(m.group(2))
+
+    if len(mult_str) == 0:
+        mult = 1
+    else:
+        mult = _mult_map[mult_str]
+
+    if is_bytes is None:
+        raise Exception, 'size(): Unable to determine if bits or bytes were specified'
+
+    if is_bytes:
+        # Bytes were specified
+        num_bytes = mult * num
+        bit_byte_str = "Bytes"
+    else:
+        # Bits were specified
+        #num_bytes = (mult * num) >> 3
+        num_bytes = (mult * num) / 8.0
+        bit_byte_str = "bits"
+
+    print "Interpreting input as %d %s%s" % (num, mult_str, bit_byte_str)
+
+    inspect_bytes(num_bytes, metric)
 
 def rdiv(vcc,r1,r2):
     """Calculate the voltage in between R1 and R2 in a resistor divider.
