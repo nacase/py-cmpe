@@ -61,6 +61,9 @@ _mult_map = {'k': k, 'K': K,
              'z': Z, 'Z': Z,
              'y': Y, 'Y': Y}
 
+# For algebraic functions so you can specify 'x' as an argument
+x = 'x'
+
 def _group_str(str,length):
     """Break up a string into groups of specified length, separated by
     spaces.  Right justified."""
@@ -333,6 +336,21 @@ def gc(s):
                 replace(' &#215; 10<sup>','e').replace('</sup>', '')
 
     return "Result not found"
+
+def ratio(n1,d1,n2,d2):
+    """Shortcut algebraic solver for n1 / d1 = n2 / d2.  Pass
+    in 'x' for the unknown and it will solve for x."""
+    if n1 == x:
+        return (d1 * n2) / (d2*1.0)
+    elif n2 == x:
+        return (d2 * n1) / (d1*1.0)
+    elif d1 == x:
+        return (n1 * d2) / (n2*1.0)
+    elif d2 == x:
+        return (n2 * d1) / (n1*1.0)
+
+    return None
+
 
 if __name__ == "__main__":
     """Start an interactive shell with all functions available.  Normally,
