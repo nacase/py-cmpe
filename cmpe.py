@@ -279,7 +279,7 @@ def rdiv(vcc,r1,r2):
 
 def rms(pkval):
     """Calculate RMS equivalent value for the given peak value."""
-    return ppval * (1/math.sqrt(2.0))
+    return pkval * (1/math.sqrt(2.0))
 
 def pk(rmsval):
     """Calculate peak equivalent value for the given RMS value."""
