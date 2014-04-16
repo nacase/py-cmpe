@@ -277,8 +277,8 @@ def rdiv(vcc,r1,r2):
        R1 is the resistor closest to VCC, R2 is connected to GND."""
     return vcc * (1 - (r1*1.0)/(r1+r2+0.0))
 
-def rms(ppval):
-    """Calculate RMS equivalent value for the given peak-to-peak value."""
+def rms(pkval):
+    """Calculate RMS equivalent value for the given peak value."""
     return ppval * (1/math.sqrt(2.0))
 
 def pk(rmsval):
