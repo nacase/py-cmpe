@@ -62,27 +62,28 @@ _mult_map = {'k': k, 'K': K,
              'y': Y, 'Y': Y}
 
 SI_PREFIXES = {
-    'Y': ('yotta', 10**24),
-    'Z': ('zetta', 10**21),
-    'E': ('exa', 10**18),
-    'P': ('peta', 10**15),
-    'T': ('tera', 10**12),
-    'G': ('giga', 10**9),
-    'M': ('mega', 10**6),
-    'k': ('kilo', 10**3),
-    'h': ('hecto', 10**2),
-    'da': ('deca', 10**1),
-    '': ('', 10**0),
-    'd': ('deci', 10**-1),
-    'c': ('centi', 10**-2),
-    'm': ('milli', 10**-3),
-    'u': ('micro', 10**-6),
-    'n': ('nano', 10**-9),
-    'p': ('pico', 10**-12),
-    'f': ('femto', 10**-15),
-    'a': ('atto', 10**-18),
-    'z': ('zepto', 10**-21),
-    'y': ('yocto', 10**-24),
+    # 'abbreviation': ('prefix', 10**<exponent>)
+    'Y': ('yotta', 24),
+    'Z': ('zetta', 21),
+    'E': ('exa', 18),
+    'P': ('peta', 15),
+    'T': ('tera', 12),
+    'G': ('giga', 9),
+    'M': ('mega', 6),
+    'k': ('kilo', 3),
+    'h': ('hecto', 2),
+    'da': ('deca', 1),
+    '': ('', 0),
+    'd': ('deci', -1),
+    'c': ('centi', -2),
+    'm': ('milli', -3),
+    'u': ('micro', -6),
+    'n': ('nano', -9),
+    'p': ('pico', -12),
+    'f': ('femto', -15),
+    'a': ('atto', -18),
+    'z': ('zepto', -21),
+    'y': ('yocto', -24),
 }
 
 # For algebraic functions so you can specify 'x' as an argument
@@ -375,6 +376,9 @@ def ratio(n1,d1,n2,d2):
 
     return None
 
+def unit(val, unit_in, unit_out=''):
+    """Return @val of unit @unit_in in terms of unit @unit_out."""
+    return val * 10**(SI_PREFIXES[unit_in][1] - SI_PREFIXES[unit_out][1])
 
 if __name__ == "__main__":
     """Start an interactive shell with all functions available.  Normally,
