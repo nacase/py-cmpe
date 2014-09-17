@@ -21,20 +21,26 @@
 #
 # Author: Nate Case <nacase@gmail.com>
 
+from __future__ import print_function
 import math
-import urllib
-import httplib
+import sys
+if sys.version < '3':
+    import urllib
+    import httplib
+else:
+    import urllib.request, urllib.parse, urllib.error
+    import http.client
 import re
 
 # JEDEC bit and byte prefixes (base 2)
-K = 0x400L
-M = 0x100000L
-G = 0x40000000L
-T = 0x10000000000L
-P = 0x4000000000000L
-E = 0x1000000000000000L
-Z = 0x400000000000000000L
-Y = 0x100000000000000000000L
+K = 0x400
+M = 0x100000
+G = 0x40000000
+T = 0x10000000000
+P = 0x4000000000000
+E = 0x1000000000000000
+Z = 0x400000000000000000
+Y = 0x100000000000000000000
 
 # Metric aliases (otherwise same as JEDEC)
 k = K
@@ -193,7 +199,7 @@ def inspect(val,bitrev=0,num_bits=0):
     s += "Binary (grouped)\t:\t %s\n" % _group_str(int2bin(val,num_bits),4)
     s += "One bits\t\t:\t%s\n" % ones(val,bits,bitrev)
     s += "Zero bits\t\t:\t%s\n" % zeros(val,bits,bitrev)
-    print s,
+    print(s, end=' ')
 
 def inspect_bytes(num_bytes,metric=False):
     """Given a number of bytes, print a string showing it in various forms."""
@@ -212,7 +218,7 @@ def inspect_bytes(num_bytes,metric=False):
     s += "Gigabits (Gb)\t\t:\t%.3f\n" % round(num_bits*1.0 / G, 3)
     s += "Terabits (Tb)\t\t:\t%.3f\n" % round(num_bits*1.0 / T, 3)
 
-    print s,
+    print(s, end=' ')
 
 def _str_is_bytes(s):
     """Return True if string indicates bytes, or False if string
@@ -237,17 +243,17 @@ def size(val,unit=None,metric=False):
     if type(val) is str:
         m = _size_re.search(val)
         if not m:
-            raise Exception, 'size(): Unrecognized value specified'
+            raise Exception('size(): Unrecognized value specified')
         num = float(m.group(1))
         mult_str = m.group(2)
         is_bytes = _str_is_bytes(m.group(3))
     else:
         if unit is None:
-            raise Exception, 'size(): unit must be specified for numeric inputs'
+            raise Exception('size(): unit must be specified for numeric inputs')
         num = val
         m = _sizeunit_re.search(unit)
         if not m:
-            raise Exception, 'size(): Unrecognized unit specified'
+            raise Exception('size(): Unrecognized unit specified')
         mult_str = m.group(1)
         is_bytes = _str_is_bytes(m.group(2))
 
@@ -257,7 +263,7 @@ def size(val,unit=None,metric=False):
         mult = _mult_map[mult_str]
 
     if is_bytes is None:
-        raise Exception, 'size(): Unable to determine if bits or bytes were specified'
+        raise Exception('size(): Unable to determine if bits or bytes were specified')
 
     if is_bytes:
         # Bytes were specified
@@ -269,7 +275,7 @@ def size(val,unit=None,metric=False):
         num_bytes = (mult * num) / 8.0
         bit_byte_str = "bits"
 
-    print "Interpreting input as %d %s%s" % (num, mult_str, bit_byte_str)
+    print("Interpreting input as %d %s%s" % (num, mult_str, bit_byte_str))
 
     inspect_bytes(num_bytes, metric)
 
@@ -347,8 +353,12 @@ def gc(s):
     Note: This is only intended for interactive use!  Please do not
     use this function in any regularly-running scripts, as automated
     usage may go against Google's intended usage policies."""
-    q = urllib.urlencode({'q': s})
-    conn = httplib.HTTPConnection("www.google.com")
+    if sys.version < '3':
+        q = urllib.urlencode({'q': s})
+        conn = httplib.HTTPConnection("www.google.com")
+    else:
+        q = urllib.parse.urlencode({'q': s})
+        conn = http.client.HTTPConnection("www.google.com")
     conn.request("GET", "/search?%s" % q)
     resp = conn.getresponse()
     data = resp.read()
@@ -394,6 +404,6 @@ if __name__ == "__main__":
     vars = globals().copy()
     vars.update(locals())
     # Show some help
-    print pydoc.render_doc("cmpe")
+    print(pydoc.render_doc("cmpe"))
     shell = code.InteractiveConsole(vars)
     shell.interact()
