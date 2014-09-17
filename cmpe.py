@@ -11,7 +11,7 @@
 #
 # To update to the latest version of this script, simply run:
 #
-#     $ curl -O https://raw.github.com/nacase/py-cmpe/master/cmpe.py
+#     $ curl -O https://raw.githubusercontent.com/nacase/py-cmpe/master/cmpe.py
 #
 # Author: Nate Case <nacase@gmail.com>
 
