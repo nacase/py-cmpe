@@ -278,6 +278,10 @@ def rdiv(vcc,r1,r2):
        R1 is the resistor closest to VCC, R2 is connected to GND."""
     return vcc * (1 - (r1*1.0)/(r1+r2+0.0))
 
+def rpar(r1,r2):
+    """Calculate equivalent resistance for r1 and r2 in parallel."""
+    return 1 / (1.0/r1 +1.0/r2)
+
 def rms(pkval):
     """Calculate RMS equivalent value for the given peak value."""
     return pkval * (1/math.sqrt(2.0))
