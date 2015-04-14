@@ -413,6 +413,8 @@ if __name__ == "__main__":
     import pydoc
     vars = globals().copy()
     vars.update(locals())
+    # set window title
+    sys.stdout.write("\033]0;Python calculator\a")
     # Show some help
     print(pydoc.render_doc("cmpe"))
     shell = code.InteractiveConsole(vars)
