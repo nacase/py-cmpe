@@ -25,6 +25,7 @@ else:
     import urllib.request, urllib.parse, urllib.error
     import http.client
 import re
+import codecs
 
 # JEDEC bit and byte prefixes (base 2)
 K = 0x400
@@ -387,6 +388,21 @@ def ratio(n1,d1,n2,d2):
 def unit(val, unit_in, unit_out=''):
     """Return @val of unit @unit_in in terms of unit @unit_out."""
     return val * 10**(SI_PREFIXES[unit_in][1] - SI_PREFIXES[unit_out][1])
+
+def bstr(b):
+    """Make a bytes object like b'\xab\xcdR' into a string like this:
+        '[ab cd 52]'
+    """
+    s = codecs.getencoder('hex_codec')(b)[0].decode('ascii')
+    s = re.sub("(.{2})", "\\1 ", s, 0, re.DOTALL)
+    return '[{s:s}]'.format(s=s[:-1])
+
+def twos_comp(val, bits):
+    """Return signed integer value from a given twos complement
+    representation @val of size @bits.  e.g., twos_comp(0xe70, 12) = -400"""
+    if (val & (1 << (bits-1))):
+        return (-(1 << bits) + val)
+    return val
 
 if __name__ == "__main__":
     """Start an interactive shell with all functions available.  Normally,
